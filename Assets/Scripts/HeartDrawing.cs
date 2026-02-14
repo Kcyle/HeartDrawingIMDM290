@@ -4,10 +4,16 @@ public class HeartDrawing : MonoBehaviour
 {
     GameObject[] balls;
     int total = 100;
+    Vector3[] startSpots;
+    Vector3[] heartSpots;
+    float progress = 0f;
 
     void Start()
     {
         balls = new GameObject[total];
+        startSpots = new Vector3[total];
+        heartSpots = new Vector3[total];
+
         int idx = 0;
         while (idx < total)
         {
@@ -19,10 +25,16 @@ public class HeartDrawing : MonoBehaviour
     void MakeBall(int idx)
     {
         float angle = (float)idx / total * 2f * Mathf.PI;
-        Vector3 spot = GetHeartPoint(angle);
+        float radius = (float)idx / total * 15f;
+        float sx = Mathf.Cos(angle * 3f) * radius;
+        float sy = Mathf.Sin(angle * 3f) * radius;
+        startSpots[idx] = new Vector3(sx, sy, 0f);
+
+        heartSpots[idx] = GetHeartPoint(angle);
 
         balls[idx] = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        balls[idx].transform.position = spot;
+        balls[idx].transform.parent = this.transform;
+        balls[idx].transform.localPosition = startSpots[idx];
 
         Renderer rend = balls[idx].GetComponent<Renderer>();
         float h = (float)idx / total;
@@ -39,13 +51,20 @@ public class HeartDrawing : MonoBehaviour
 
     void Update()
     {
+        if (progress < 1f)
+            progress += 0.2f * Time.deltaTime;
+
         int idx = 0;
         while (idx < total)
         {
+    
+            balls[idx].transform.localPosition = Vector3.Lerp(startSpots[idx], heartSpots[idx], progress);
+
             Renderer rend = balls[idx].GetComponent<Renderer>();
             float h = Mathf.Sin((float)idx / total * Mathf.PI + Time.time) * 0.5f + 0.5f;
             Color col = Color.HSVToRGB(h, 1f, 1f);
             rend.material.color = col;
+
             idx++;
         }
     }
